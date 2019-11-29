@@ -1,0 +1,4 @@
+*.ipynb
+/.*
+*.wav
+__pycache__
