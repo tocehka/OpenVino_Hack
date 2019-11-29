@@ -18,10 +18,12 @@ class record:
 
     data = np.array([[0,0]])
     
-
+    #Юзайте данный подход для записи аудио с микрофона, ибо он полностью рабочий, то бишь полноценный стриминг,
+    #время не ограничено заданным, как ранее. Также выход получется уже в рабочем np.array, который можно легко
+    #переконвертить в байт массив bytearray(...) и работать уже непосредственно с ним, поля выше в качестве конфигов
+    #тоже можно менять.
     async def audio_stream(self):
         def audio_callback(indata, frames, time, status):
-            #print(indata)
             q.put(indata.copy())
             
         stream = sd.InputStream(blocksize=self.blocksize, dtype=self.dtype,
@@ -33,7 +35,6 @@ class record:
                 try:
                     self.data = np.append(self.data,q.get_nowait(),axis=0)
                     await conn.send_audio(q.get_nowait())
-                    #await conn.kek(q.get_nowait())
                 except queue.Empty:
                     pass
     
