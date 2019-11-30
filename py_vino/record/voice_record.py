@@ -5,6 +5,7 @@ import asyncio
 from stream import connection
 from datetime import datetime
 import json
+import wave
 
 q = queue.Queue()
 conn = connection.stream()
@@ -12,11 +13,11 @@ conn = connection.stream()
 class record:
 
     samplerate = 44100
-    channels = 2
+    channels = 1
     dtype = 'float32'
-    blocksize = 1024 * 4
+    blocksize = 960
 
-    data = np.array([[0,0]])
+    data = np.array([[0]])
     
     #Юзайте данный подход для записи аудио с микрофона, ибо он полностью рабочий, то бишь полноценный стриминг,
     #время не ограничено заданным, как ранее. Также выход получется уже в рабочем np.array, который можно легко
@@ -34,6 +35,7 @@ class record:
             while True:
                 try:
                     self.data = np.append(self.data,q.get_nowait(),axis=0)
+                    #await conn.send_audio(np.concatenate(q.get_nowait(),axis = None))
                     await conn.send_audio(q.get_nowait())
                 except queue.Empty:
                     pass
@@ -41,9 +43,16 @@ class record:
     async def data_stream(self):
         while True:
             await asyncio.sleep(10)
+            print('Saving as wav file...')
+            wf = wave.open("kek.wav", 'wb')
+            wf.setnchannels(1)
+            wf.setsampwidth(4)
+            wf.setframerate(44100)
+            wf.writeframes(b''.join(bytearray(np.concatenate(self.data,axis = None))))
+            wf.close()
             print(self.data)
             print(self.data.shape)
             dt = datetime.now()
             json_arr = {"timestamp":dt.isoformat(),"emotion":"angry","human":"Anton","data_quantity":self.data.shape[0]}
-            self.data = np.array([[0,0]])
-            await conn.send_data(json.dumps(json_arr))
+            self.data = np.array([[0]])
+            #await conn.send_data(json.dumps(json_arr))

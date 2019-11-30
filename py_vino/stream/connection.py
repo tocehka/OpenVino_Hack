@@ -3,6 +3,7 @@ import numpy as np
 import asyncio
 import sounddevice as sd
 import sys
+import json
 
 class stream:
 
@@ -14,17 +15,17 @@ class stream:
         self.uri_audio = "ws://localhost:"+str(self.PORT)+"/audio"
         self.uri_data = "ws://localhost:"+str(self.PORT)+"/data"
     
-    async def send_audio(self,audio_arr):
+    async def send_audio(self,is_speech):
         try:
             async with websockets.connect(self.uri_audio) as ws:
-                await ws.send(bytearray(audio_arr))
+                await ws.send(bytes(str(json.dumps({"is_speech":is_speech}))))
         except Exception as e:
             print(type(e).__name__ + str(e))
             while True:
                 print("Try to reconnect or not?\ny/n\n")
                 key = input()
                 if key == 'y':
-                    self.send_audio(audio_arr)
+                    self.send_audio(is_speech)
                     break
                 if key == 'n':
                     print("Program was stopped")
