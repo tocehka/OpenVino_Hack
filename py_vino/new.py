@@ -133,6 +133,7 @@ def is_speech_sending(is_speech):
     asyncio.set_event_loop(loop)
     asyncio.ensure_future(sendPermanentData(is_speech))
     #loop.run_forever()
+    loop.close()
 
 framesQueue = queue.Queue()
 def framesThreadBody():
