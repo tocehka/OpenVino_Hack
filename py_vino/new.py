@@ -128,6 +128,12 @@ def to_queue(frames, timestamp_start):
 async def sendPermanentData(is_speech):
     await conn.send_audio(is_speech)
 
+def is_speech_sending(is_speech):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    asyncio.ensure_future(sendPermanentData(is_speech))
+    #loop.run_forever()
+
 framesQueue = queue.Queue()
 def framesThreadBody():
     CHUNK = 960
@@ -152,7 +158,7 @@ def framesThreadBody():
         #print(framesQueue.qsize())
         data = stream.read(CHUNK)
         #print(vad.is_speech(data, RATE))
-        
+        is_speech_sending(vad.is_speech(data, RATE))
         if not vad.is_speech(data, RATE):
             false_counter += 1
             if false_counter >= 30:
